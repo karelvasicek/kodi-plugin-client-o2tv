@@ -10,7 +10,6 @@ import xbmcaddon
 import xbmc
 import os
 import json
-import subprocess
 
 addonID = 'plugin.video.client-o2tv'
 addon = xbmcaddon.Addon(addonID)
@@ -20,21 +19,27 @@ icon = addon.getAddonInfo('icon')
 addonDir = addon.getAddonInfo('path').decode('utf-8')
 libDir = os.path.join(addonDir, 'resources', 'lib')
 addonDataDir = os.path.join(xbmc.translatePath('special://userdata/addon_data').decode('utf-8'), addonID)
-settingsFile = os.path.join(libDir, 'settings.sh')
+configFile = os.path.join(addonDataDir, 'config.json')
 
 def getLocaleString(id):
     return addon.getLocalizedString(id).encode('utf-8')
 
-def createSettings():
-    with open(settingsFile, 'w') as f:
-        f.write('#!/bin/sh\n')
-        f.write('username="{0}"\n'.format(addon.getSetting('username')))
-        f.write('password="{0}"\n'.format(addon.getSetting('password')))
-        f.write('device_name="{0}"\n'.format(addon.getSetting('device_name')))
-        f.write('device_id="{0}"\n'.format(addon.getSetting('device_id')))
-        f.write('data="{0}/"\n'.format(libDir))
-        f.write('cd "{0}"\n'.format(libDir))
-    os.chmod(settingsFile, 0775)
+def createConfig():
+    config = {
+        'provider': 'o2tv.cz',
+        'username': addon.getSetting('username'),
+        'password': addon.getSetting('password'),
+        'device_name': addon.getSetting('device_name'),
+        'device_type': 'STB',
+        'device_id': addon.getSetting('device_id'),
+        'resolution': 'HD',
+        'streaming_protocol': 'HLS',
+        'parse_stream': '0',
+        'insert_logo': '1',
+        'ffmpeg': '/usr/bin/'
+    }
+    with open(configFile, 'w') as f:
+        f.write(json.dumps(config))
 
 def Login():
     Exec('login.sh', getLocaleString(30101))
@@ -43,12 +48,12 @@ def Playlist():
     Exec('playlist.sh', getLocaleString(30102))
 
 def Exec(cmd, message):
-    xbmc.log(cmd, level=xbmc.LOGNOTICE)
-    createSettings()
+    # xbmc.log(cmd, level=xbmc.LOGNOTICE)
+    createConfig()
     cmd = os.path.join(libDir, cmd)
     # cmd = os.path.join(libDir, 'test.sh')
     os.chmod(cmd, 0775)
-    os.system(cmd + ' ' + libDir)
+    os.system(cmd)
     xbmc.executebuiltin('Notification(' + addonName + ',' + message + ',5000)')
 
 base_url = sys.argv[0]

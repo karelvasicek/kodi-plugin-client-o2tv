@@ -1,39 +1,20 @@
-#!/bin/sh
-# Verze 0.5
-# Streamer, který vytváří stream pro Tvheadend předávaný metodou pipe:// na stdout scriptu, resp. volaného ffmpeg.
+#! /bin/sh
+# Vytváří stream pro Tvheadend předávaný metodou pipe:// na stdout scriptu, resp. volaného ffmpeg
+# Verze 0.8
 # Changelog:
-# - stream cache ano/ne - viz mplementační parametry cache=1/cachce=
-# - mapování streamů v ffmpeg - viz parametr spuštění, řetězec mapování ffmpeg v "...", je třeba editovat ručně v souboru playlist.m3u8
+# - typ výpisu ffmpeg je možné zadat v sekci implementační parametry (např. level="-v fatal" vs level=)
+# - byla zdrušena možnost používat cache streamů
 # Závislosti: ffmpeg, wget, jq
-# Předpoklady: existuje soubor acces.id s aktuálními parametry přihlášeného a registrovaného zařízení
+# Předpoklady:
+# - existuje soubor acces.id s aktuálními parametry přihlášeného a registrovaného zařízení
 
-# Začátek části zadání uživatelských parametrů
-# Pozn: Veškeré parametry bez mezer a českých znaků!
-# Identifikace poskytovatele služby, které se přenese do Kodi jako "Poskytovatel" - zobrazí se v OSD PVR
-provider=o2tv.cz
-# Typ zařízení. Je určující pro nabídku streamů služby {STB, PC, TABLET, MOBILE}
-device_type=STB
-# Rozlišení, závisí na typu zařízení {HD, SD} Např, pro STB je HD 1920x1080, 50 FPS a SD 1024x576, 25 FPS. 
-resolution=HD
-# Protokol (HLS, DASH)
-# Musíte si být jist, zda vaše ffmpeg umí DASH - je třeba, aby bylo přeložené s knihovnou libxml2.
-# Není mi známý žádný zásadní důvod, proč používat DASH, proto doporučuji používat HLS.
-streaming_protocol=HLS
-# Absolutní cesta k adresáři služby ve tvaru /.../
-data=
-# Absolutní cesta k adresáři s ffmpeg /.../ nebo prázdné (ffmpeg=)
-ffmpeg=
-# Konec části zadání uživatelských parametrů
-
-# Implementační parametry
-debug=
-valid=86400
-cache=
-
-ADDON_DIR=`dirname "$0"`/
-if [ -d "${ADDON_DIR}" -a -f "${ADDON_DIR}/settings.sh" ]; then
-    source ${ADDON_DIR}/settings.sh
-fi
+# Výchozí adresář
+dir=$(dirname $0)
+pwd=$(pwd)
+cd ${dir}
+script=$(pwd)
+data="${script}/../../../../userdata/addon_data/plugin.video.client-o2tv/"
+cd ${pwd}
 
 # Parametry spuštění
 channel=$1
@@ -41,44 +22,38 @@ service=$2
 [ ! ${service} ] && service=n/a
 mapping=$3
 
-[ ${debug} ] && echo $(date +"%Y-%m-%d %H:%M:%S.%N") PARAM ${service} ${channel} ${mapping} >> ${data}streamer.log
+# Implementační parametry
+debug=1
+level="-v fatal"
 
-if [ ! ${cache} ] ; then
-	[ ${debug} ] && echo $(date +"%Y-%m-%d %H:%M:%S.%N") MODE No cached streams >> ${data}streamer.log
-	access_id=$(head -n 1 ${data}access.id)
-	device_id=$(echo ${access_id} | cut -d' ' -f2)
-	access_token=$(echo ${access_id} | cut -d' ' -f3)
-	subscription=$(echo ${access_id} | cut -d' ' -f4)
-	json=$(wget -qO - --header "X-NanguTv-Access-Token:${access_token}" --header "X-NanguTv-Device-Id:${device_id}" --no-check-certificate "https://app.o2tv.cz/sws/server/streaming/uris.json?serviceType=LIVE_TV&deviceType=${device_type}&streamingProtocol=${streaming_protocol}&resolution=${resolution}&subscriptionCode=${subscription}&channelKey=${channel}&encryptionType=NONE")
-	stream=$(echo ${json} | jq -r '.uris' | jq -r '.[0].uri' | sed "s/_sd_/_hd_/")
-else
-	[ ${debug} ] && echo $(date +"%Y-%m-%d %H:%M:%S.%N") MODE Cached streams >> ${data}streamer.log
-	cache=.cache
-	[ ! -d ${data}${cache} ] && mkdir ${data}${cache}
-	if [ -e ${data}${cache}/${service}.strm ] ; then
-		[ ${debug} ] && echo $(date +"%Y-%m-%d %H:%M:%S.%N") CACHE Tested >> ${data}streamer.log
-		stream=$(cat ${data}${cache}/${service}.strm)
-		create=$(echo ${stream} | sed -re "s;(http|https)\:\/\/stc\.o2tv\.cz\/at\/[0-9a-z]*\/([0-9]{10})[0-9]*\/.*;\2;")
-		expire=$((create+valid))
-		[ ${debug} ] && echo $(date +"%Y-%m-%d %H:%M:%S.%N") TIME Create: $(date -d @${create} +"%Y-%m-%d %H:%M:%S") Expire: $(date -d @${expire} +"%Y-%m-%d %H:%M:%S") >> ${data}streamer.log
-		now=$(date +%s)
-		[ ${expire} -le ${now} ] && stream=
-	fi
-	if [ ! ${stream} ] ; then
-		[ ${debug} ] && echo $(date +"%Y-%m-%d %H:%M:%S.%N") CACHE Created >> ${data}streamer.log
-		access_id=$(head -n 1 ${data}access.id)
-		device_id=$(echo ${access_id} | cut -d' ' -f2)
-		access_token=$(echo ${access_id} | cut -d' ' -f3)
-		subscription=$(echo ${access_id} | cut -d' ' -f4)
-		json=$(wget -qO - --header "X-NanguTv-Access-Token:${access_token}" --header "X-NanguTv-Device-Id:${device_id}" --no-check-certificate "https://app.o2tv.cz/sws/server/streaming/uris.json?serviceType=LIVE_TV&deviceType=${device_type}&streamingProtocol=${streaming_protocol}&resolution=${resolution}&subscriptionCode=${subscription}&channelKey=${channel}&encryptionType=NONE")
-		[ ${debug} ] && echo $(date +"%Y-%m-%d %H:%M:%S.%N") JSON ${json} >> ${data}streamer.log
-		stream=$(echo ${json} | jq -r '.uris' | jq -r '.[0].uri')
-		create=$(echo ${stream} | sed -re "s;(http|https)\:\/\/stc\.o2tv\.cz\/at\/[0-9a-z]*\/([0-9]{10})[0-9]*\/.*;\2;")
-		expire=$((create+valid))
-		[ ${debug} ] && echo $(date +"%Y-%m-%d %H:%M:%S.%N") TIME Create: $(date -d @${create} +"%Y-%m-%d %H:%M:%S") Expire: $(date -d @${expire} +"%Y-%m-%d %H:%M:%S") >> ${data}streamer.log
-		printf "%s" ${stream} > ${data}${cache}/${service}.strm
-	fi
-fi
-[ ${debug} ] && echo $(date +"%Y-%m-%d %H:%M:%S.%N") STREAM ${stream} >> ${data}streamer.log
-${ffmpeg}ffmpeg -fflags +genpts -v fatal -i ${stream} -c copy ${mapping} -f mpegts -mpegts_service_type digital_tv -metadata service_provider=${provider} -metadata service_name=${service} pipe:1 #2> ${data}ffmpeg.err
+config_file=${data}/config.json
+access_file=${data}/access.id
+
+log_file=${data}/streamer.log
+err_file=${data}/ffmpeg.err
+
+[ ${debug} ] && echo $(date +"%Y-%m-%d %H:%M:%S.%N") PARAM ${dir} ${channel} ${service} ${mapping} >> ${log_file}
+
+access_id=$(head -n 1 ${access_file})
+device_id=$(echo ${access_id} | cut -d' ' -f1)
+access_token=$(echo ${access_id} | cut -d' ' -f2)
+subscription=$(echo ${access_id} | cut -d' ' -f4)
+provider=$(echo ${access_id} | cut -d' ' -f5)
+device_type=$(echo ${access_id} | cut -d' ' -f6)
+resolution=$(echo ${access_id} | cut -d' ' -f7)
+streaming_protocol=$(echo ${access_id} | cut -d' ' -f8)
+parse_stream=$(echo ${access_id} | cut -d' ' -f9)
+ffmpeg=$(echo ${access_id} | cut -d' ' -f10)
+[ ${debug} ] && echo $(date +"%Y-%m-%d %H:%M:%S.%N") ACCESS.ID ${access_id} >> ${log_file}
+
+json=$(wget -qO - --header "X-NanguTv-Access-Token:${access_token}" --header "X-NanguTv-Device-Id:${device_id}" --no-check-certificate "https://app.o2tv.cz/sws/server/streaming/uris.json?serviceType=LIVE_TV&deviceType=${device_type}&streamingProtocol=${streaming_protocol}&resolution=${resolution}&subscriptionCode=${subscription}&channelKey=${channel}&encryptionType=NONE")
+[ ${debug} ] && echo $(date +"%Y-%m-%d %H:%M:%S.%N") JSON ${json} >> ${log_file}
+stream=$(echo ${json} | jq -r '.uris' | jq -r '.[0].uri')
+
+# [ ${resolution} = "HD" ] && stream=$(echo ${stream} | sed -e "s/_sd_/_hd_/")
+# [ ${resolution} = "SD" ] && stream=$(echo ${stream} | sed -e "s/_hd_/_sd_/")
+[ ${parse_stream} ] && [ ${parse_stream} != 0 ] && stream=$(wget -qO - "${stream}" | tail -n${parse_stream} | head -n 1)
+[ ${debug} ] && echo $(date +"%Y-%m-%d %H:%M:%S.%N") STREAM ${stream} >> ${log_file}
+
+${ffmpeg}ffmpeg -fflags +genpts ${level} -i ${stream} -c copy ${mapping} -f mpegts -mpegts_service_type digital_tv -metadata service_provider=${provider} -metadata service_name=${service} pipe:1 #2> ${err_file}
 
