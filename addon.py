@@ -35,8 +35,8 @@ def createConfig():
         'resolution': 'HD',
         'streaming_protocol': 'HLS',
         'parse_stream': '0',
-        'insert_logo': '1',
-        'ffmpeg': '/usr/bin/'
+        'insert_logo': '1' if addon.getSetting('insert_logo') == 'true' else '0',
+        'ffmpeg': addon.getSetting('ffmpeg_path')
     }
     with open(configFile, 'w') as f:
         f.write(json.dumps(config))
