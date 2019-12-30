@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="plugin.video.client-o2tv" name="O2TV client" version="0.0.1" provider-name="Client,charles">
+  <requires>
+    <import addon="xbmc.python" version="2.1.0"/>
+  </requires>
+  <extension point="xbmc.python.pluginsource" library="addon.py">
+    <provides>video</provides>
+  </extension>
+  <extension point="xbmc.addon.metadata">
+    <news>
+2019-12-28 [0.0.1]
+* Inital release
+    </news>
+    <summary>O2TV client</summary>
+    <description>Plugin to watch O2TV broadcasting service</description>
+    <description lang="cs">Plugin pro sledování služby O2TV</description>
+    <platform>all</platform>
+    <assets>
+      <icon>resources/icon.png</icon>
+    </assets>
+  </extension>
+</addon>

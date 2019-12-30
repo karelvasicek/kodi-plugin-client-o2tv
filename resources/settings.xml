@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<settings>
+	<category label="30000">
+		<setting id="username" label="30001" type="text" default=""/>
+		<setting id="password" label="30002" type="text" option="hidden" default=""/>
+        <setting id="device_name" label="30003" type="text" default=""/>
+		<setting id="device_id" label="30004" type="text" default=""/>
+	</category>
+	<category label="30100">
+        <setting type="action" label="30101" action="RunPlugin(plugin://plugin.video.client-o2tv/addon.py?mode=1)"/>        
+        <setting type="action" label="30102" action="RunPlugin(plugin://plugin.video.client-o2tv/addon.py?mode=2)"/>        
+	</category>
+</settings>

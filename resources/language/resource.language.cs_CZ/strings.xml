@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<strings>
+	<string id="30000">Přihlášení</string>
+	<string id="30001">Uživatelské jméno</string>
+	<string id="30002">Heslo</string>
+	<string id="30003">Název zařízení</string>
+	<string id="30004">ID zařízení</string>
+
+	<string id="30100">Akce</string>
+	<string id="30101">Přihlásit</string>
+	<string id="30102">Generovat playlist</string>
+</strings>
