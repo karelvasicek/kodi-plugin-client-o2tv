@@ -5,11 +5,13 @@
     <string id="30002">Password</string>
     <string id="30003">Device name</string>
     <string id="30004">Device ID</string>
-	<string id="30005">Insert channel logos</string>
-	<string id="30006">ffmpeg path</string>
 
 	<string id="30100">Actions</string>
 	<string id="30101">Login</string>
 	<string id="30102">Create playlist</string>
 	<string id="30103">Set executable permissions</string>
+
+    <string id="30200">Advanced settings</string>
+	<string id="30201">Insert channel logos</string>
+	<string id="30202">ffmpeg path</string>
 </strings>

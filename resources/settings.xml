@@ -5,8 +5,10 @@
 		<setting id="password" label="30002" type="text" option="hidden" default=""/>
         <setting id="device_name" label="30003" type="text" default=""/>
 		<setting id="device_id" label="30004" type="text" default=""/>
-		<setting id="insert_logo" label="30005" type="bool" default="false"/>
-		<setting id="ffmpeg_path" label="30006" type="text" default="/usr/bin/"/>
+	</category>
+	<category label="30200">
+		<setting id="insert_logo" label="30201" type="bool" default="false"/>
+		<setting id="ffmpeg_path" label="30202" type="text" default="/usr/bin/"/>
 	</category>
 	<category label="30100">
         <setting type="action" label="30101" action="RunPlugin(plugin://plugin.video.client-o2tv/addon.py?mode=1)"/>        

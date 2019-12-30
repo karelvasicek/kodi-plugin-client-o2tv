@@ -5,11 +5,13 @@
 	<string id="30002">Heslo</string>
 	<string id="30003">Název zařízení</string>
 	<string id="30004">ID zařízení</string>
-	<string id="30005">Uložit loga kanálů</string>
-	<string id="30006">Cesta k ffmpeg</string>
 
 	<string id="30100">Akce</string>
 	<string id="30101">Přihlásit</string>
 	<string id="30102">Generovat playlist</string>
 	<string id="30103">Nastavit spustitelné oprávnění</string>
+
+	<string id="30200">Rozšířená nastavení</string>
+	<string id="30201">Uložit loga kanálů</string>
+	<string id="30202">Cesta k ffmpeg</string>
 </strings>
