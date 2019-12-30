@@ -50,11 +50,21 @@ def Playlist():
 def Exec(cmd, message):
     # xbmc.log(cmd, level=xbmc.LOGNOTICE)
     createConfig()
+    SetPermissions(False)
     cmd = os.path.join(libDir, cmd)
     # cmd = os.path.join(libDir, 'test.sh')
-    os.chmod(cmd, 0775)
     os.system(cmd)
     xbmc.executebuiltin('Notification(' + addonName + ',' + message + ',5000)')
+
+def SetPermissions(show_notification):
+    cmd = os.path.join(libDir, 'login.sh')
+    os.chmod(cmd, 0755)
+    cmd = os.path.join(libDir, 'playlist.sh')
+    os.chmod(cmd, 0755)
+    cmd = os.path.join(libDir, 'streamer.sh')
+    os.chmod(cmd, 0755)
+    if show_notification == True:
+        xbmc.executebuiltin('Notification(' + addonName + ',' + getLocaleString(30103) + ',5000)')
 
 base_url = sys.argv[0]
 addon_handle = int(sys.argv[1])
@@ -66,3 +76,5 @@ if mode == '1':
     Login()
 elif mode == '2':
     Playlist()
+elif mode == '3':
+    SetPermissions(True)

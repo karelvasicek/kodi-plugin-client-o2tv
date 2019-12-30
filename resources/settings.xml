@@ -11,5 +11,6 @@
 	<category label="30100">
         <setting type="action" label="30101" action="RunPlugin(plugin://plugin.video.client-o2tv/addon.py?mode=1)"/>        
         <setting type="action" label="30102" action="RunPlugin(plugin://plugin.video.client-o2tv/addon.py?mode=2)"/>        
+        <setting type="action" label="30103" action="RunPlugin(plugin://plugin.video.client-o2tv/addon.py?mode=3)"/>
 	</category>
 </settings>
